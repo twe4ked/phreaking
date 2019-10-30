@@ -1,4 +1,5 @@
 use hound::{SampleFormat, WavSpec, WavWriter};
+use std::env;
 use std::f32::consts::PI;
 use std::fs::File;
 use std::i16;
@@ -47,6 +48,15 @@ const SAMPLE_RATE: u32 = 44100;
 const AMPLITUDE: f32 = i16::MAX as f32;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    let input = args.get(1).unwrap_or_else(|| {
+        panic!(
+            "usage: {} [0123456789ABCD*#]",
+            args.get(0).unwrap_or(&"phreaking".to_string())
+        )
+    });
+    let input: Vec<usize> = input.chars().map(|c| tone_index(c)).collect();
+
     let spec = WavSpec {
         channels: 1,
         sample_rate: SAMPLE_RATE,
@@ -58,10 +68,25 @@ fn main() {
 
     let length = SAMPLE_RATE / 10;
 
-    (0..16).for_each(|n| {
-        write_tone(&mut writer, length, TONE[n]);
+    input.iter().for_each(|n| {
+        write_tone(&mut writer, length, TONE[*n]);
         write_silence(&mut writer, length);
     });
+}
+
+fn tone_index(c: char) -> usize {
+    match c.to_digit(10) {
+        Some(d) => d as usize,
+        None => match c {
+            'a' | 'A' => 10,
+            'b' | 'B' => 11,
+            'c' | 'C' => 12,
+            'd' | 'D' => 13,
+            '*' => 14,
+            '#' => 15,
+            _ => panic!("invalid input"),
+        },
+    }
 }
 
 fn write_tone(writer: &mut WavWriter<BufWriter<File>>, length: u32, tone: (f32, f32)) {
