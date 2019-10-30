@@ -56,22 +56,26 @@ fn main() {
 
     let mut writer = WavWriter::create("tone.wav", spec).unwrap();
 
-    (0..16).for_each(|n| write_tone(&mut writer, TONE[n]));
+    let length = SAMPLE_RATE / 10;
+
+    (0..16).for_each(|n| {
+        write_tone(&mut writer, length, TONE[n]);
+        write_silence(&mut writer, length);
+    });
 }
 
-fn write_tone(writer: &mut WavWriter<BufWriter<File>>, tone: (f32, f32)) {
-    for t in 0..SAMPLE_RATE {
+fn write_tone(writer: &mut WavWriter<BufWriter<File>>, length: u32, tone: (f32, f32)) {
+    for t in 0..length {
         let t = t as f32 / SAMPLE_RATE as f32;
-        let sample = if t < 0.15 {
-            let x_sin = (t * tone.0 * 2.0 * PI).sin();
-            let y_sin = (t * tone.1 * 2.0 * PI).sin();
-            (x_sin + y_sin) / 2.0
-        } else if t < 0.25 {
-            0.0
-        } else {
-            break;
-        };
-
+        let x_sin = (t * tone.0 * 2.0 * PI).sin();
+        let y_sin = (t * tone.1 * 2.0 * PI).sin();
+        let sample = (x_sin + y_sin) / 2.0;
         writer.write_sample((sample * AMPLITUDE) as i16).unwrap();
+    }
+}
+
+fn write_silence(writer: &mut WavWriter<BufWriter<File>>, length: u32) {
+    for _ in 0..length {
+        writer.write_sample(0 as i16).unwrap();
     }
 }
