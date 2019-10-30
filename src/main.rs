@@ -1,6 +1,8 @@
 use hound::{SampleFormat, WavSpec, WavWriter};
 use std::f32::consts::PI;
+use std::fs::File;
 use std::i16;
+use std::io::BufWriter;
 
 // Dual Tone Multi Frequency (DTMF)
 //
@@ -57,7 +59,7 @@ fn main() {
     (0..16).for_each(|n| write_tone(&mut writer, TONE[n]));
 }
 
-fn write_tone(writer: &mut WavWriter<std::io::BufWriter<std::fs::File>>, tone: (f32, f32)) {
+fn write_tone(writer: &mut WavWriter<BufWriter<File>>, tone: (f32, f32)) {
     for t in 0..SAMPLE_RATE {
         let t = t as f32 / SAMPLE_RATE as f32;
         let sample = if t < 0.15 {
