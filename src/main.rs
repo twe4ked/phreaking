@@ -65,17 +65,15 @@ fn main() {
 }
 
 fn write_tone(writer: &mut WavWriter<BufWriter<File>>, length: u32, tone: (f32, f32)) {
-    for t in 0..length {
+    (0..length).for_each(|t| {
         let t = t as f32 / SAMPLE_RATE as f32;
         let x_sin = (t * tone.0 * 2.0 * PI).sin();
         let y_sin = (t * tone.1 * 2.0 * PI).sin();
         let sample = (x_sin + y_sin) / 2.0;
         writer.write_sample((sample * AMPLITUDE) as i16).unwrap();
-    }
+    });
 }
 
 fn write_silence(writer: &mut WavWriter<BufWriter<File>>, length: u32) {
-    for _ in 0..length {
-        writer.write_sample(0 as i16).unwrap();
-    }
+    (0..length).for_each(|_| writer.write_sample(0 as i16).unwrap());
 }
